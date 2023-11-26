@@ -1,5 +1,8 @@
 package com.example.socialmedia.Security;
 
+import lombok.Builder;
+
+@Builder
 public class SignInRequest {
 
     private String username;
@@ -7,6 +10,7 @@ public class SignInRequest {
 
     public SignInRequest() {
     }
+
 
     public SignInRequest(String username, String password) {
         this.username = username;

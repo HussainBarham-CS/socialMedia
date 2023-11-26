@@ -4,6 +4,7 @@ package com.example.socialmedia.Security;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import lombok.Data;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
@@ -39,6 +40,20 @@ public class TokenUtil {
                 .compact();
     }
 
+    public String generateRewfreshToken(UserDetails userDetails) {
+
+        Map<String, Object> claims = new HashMap<>();
+        claims.put(CLAIMS_SUBJECT, userDetails.getUsername());
+        claims.put(CLAIMS_CREATED, new Date());
+
+
+        return Jwts.builder()
+                .setClaims(claims)
+                .setExpiration(generateRefreshTokenExpirationDate())
+                .signWith(SignatureAlgorithm.HS512, TOKEN_SECRET)
+                .compact();
+    }
+
     public String getUserNameFromToken(String token) {
         try {
             Claims claims = getClaims(token);
@@ -49,8 +64,11 @@ public class TokenUtil {
         }
     }
 
-    private Date generateExpirationDate() {
-        return new Date(System.currentTimeMillis() + TOKEN_VALIDITY * 1000);
+    public Date generateExpirationDate() {
+        return new Date(System.currentTimeMillis() + TOKEN_VALIDITY * 1);
+    }
+    public Date generateRefreshTokenExpirationDate() {
+        return new Date(System.currentTimeMillis() + TOKEN_VALIDITY * 20000);
     }
 
     public boolean isTokenValid(String token, UserDetails userDetails) {
@@ -59,12 +77,12 @@ public class TokenUtil {
         return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
     }
 
-    private boolean isTokenExpired(String token) {
+    public boolean isTokenExpired(String token) {
         Date expiration = getClaims(token).getExpiration();
         return expiration.before(new Date());
     }
 
-    private Claims getClaims(String token) {
+    public Claims getClaims(String token) {
         Claims claims;
         try {
             claims = Jwts.parser().setSigningKey(TOKEN_SECRET)
